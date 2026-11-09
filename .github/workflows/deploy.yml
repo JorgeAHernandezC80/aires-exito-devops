@@ -1,0 +1,75 @@
+# Despliegue continuo: cada cambio que llega a main (por merge de un PR) vuelve a correr las
+# pruebas, construye el reporte y lo publica en GitHub Pages. Si las pruebas fallan, no se
+# despliega nada.
+name: Deploy (GitHub Pages)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Un solo despliegue a la vez; no se cancela uno que ya está publicando.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Probar y construir el reporte
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - name: Pruebas (puerta de calidad antes de desplegar)
+        run: pytest -q
+      - name: Construir el sitio
+        run: python -m aires_exito reporte --salida _site
+      - name: Verificar el sitio generado
+        run: |
+          test -s _site/index.html
+          test -s _site/datos.csv
+          grep -q "<svg" _site/index.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+          include-hidden-files: true
+
+  deploy:
+    name: Publicar en GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      page_url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
+
+  smoke-test:
+    name: Prueba de humo del sitio publicado
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: El sitio responde y muestra el reporte
+        env:
+          URL: ${{ needs.deploy.outputs.page_url }}
+        run: |
+          for i in 1 2 3 4 5; do
+            if curl -fsSL "$URL" | grep -q "Aires acondicionados en"; then
+              echo "OK: $URL"; exit 0
+            fi
+            echo "Intento $i: aún no disponible, esperando 15 s"; sleep 15
+          done
+          echo "El sitio no respondió como se esperaba"; exit 1
