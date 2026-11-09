@@ -22,11 +22,23 @@ _RE_NOMBRE_TEXTO = re.compile(
 )
 
 
+_RE_OFERTAS = re.compile(r"\s*Ver\s+\d+\s+ofertas?\s+adicional(?:es)?\s*$", re.I)
+
+
+def _texto_de(art: Tag, selector: str) -> str:
+    el = art.select_one(selector)
+    return el.get_text(" ", strip=True) if el else ""
+
+
 def _nombre_y_url(art: Tag, texto: str) -> tuple[str, str]:
     nombre, url = "", ""
     enlace = art.find("a", href=lambda h: h and "/p" in h)
     if enlace:
         url = enlace["href"]
+    # 1) <h3 class="styles_name__…">: nombre completo. El texto del enlace viene truncado
+    #    (p. ej. le falta ".SSO" o "A FDAC12222"), por eso ya no es la primera opción.
+    nombre = _texto_de(art, '[class*="styles_name__"]')
+    if not nombre and enlace:
         nombre = (
             enlace.get_text(strip=True) or enlace.get("title") or enlace.get("aria-label") or ""
         )
@@ -42,6 +54,17 @@ def _nombre_y_url(art: Tag, texto: str) -> tuple[str, str]:
     return nombre, url
 
 
+def _vendedor(art: Tag, texto: str) -> str:
+    """Vendedor desde <p data-fs-product-name-container>; si no existe, regex sobre el texto."""
+    el = art.select_one("[data-fs-product-name-container]")
+    if el:
+        vendedor = el.get_text(" ", strip=True).replace("Vendido por:", "").strip()
+    else:
+        m = _RE_VENDEDOR.search(texto)
+        vendedor = m.group(1).strip() if m else ""
+    return _RE_OFERTAS.sub("", vendedor) or "Éxito"
+
+
 def extraer_producto(art: Tag) -> dict:
     """Extrae los campos de una tarjeta ``<article>`` del listado."""
     texto = art.get_text(" ", strip=True)
@@ -49,17 +72,17 @@ def extraer_producto(art: Tag) -> dict:
 
     precios = [int(p.replace(".", "")) for p in _RE_PRECIO.findall(texto)]
     m_desc = _RE_DESCUENTO.search(texto)
-    m_vend = _RE_VENDEDOR.search(texto)
     m_rat = _RE_CALIFICACION.search(texto)
 
     return {
         "nombre": nombre,
+        "marca_tarjeta": _texto_de(art, '[class*="styles_brand__"]') or None,
         "url": url,
         "patrocinado": "Patrocinado" in texto,
         "precio_actual": min(precios) if precios else None,
         "precio_anterior": max(precios) if len(precios) > 1 else None,
         "descuento_pct": int(m_desc.group(1)) if m_desc else None,
-        "vendedor": m_vend.group(1).strip() if m_vend else "Éxito",
+        "vendedor": _vendedor(art, texto),
         "calificacion": float(m_rat.group(1)) if m_rat else None,
         "n_opiniones": int(m_rat.group(2)) if m_rat else None,
         "detalles": texto,
