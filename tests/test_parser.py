@@ -52,3 +52,24 @@ def test_url_relativa_se_completa():
     (p,) = parsear_pagina(html)
     assert p["url"] == "https://www.exito.com/aire-x/p"
     assert p["vendedor"] == "Éxito"  # valor por defecto cuando no aparece "Vendido por:"
+
+
+# --- Bugs heredados de la EA1 (docs/bitacora.md) ---
+
+
+def test_vendedor_sin_texto_de_ofertas_adicionales(productos):
+    # La tarjeta muestra "Vendido por: Exito  Ver 1 oferta adicional"
+    assert productos[0]["vendedor"] == "Exito"
+
+
+def test_nombre_completo_no_truncado(productos):
+    # El enlace trae el nombre recortado; el <h3> de la tarjeta lo trae completo.
+    assert productos[3]["nombre"].endswith("2IN1S18C3.SSO")
+    assert productos[5]["nombre"].endswith("A FDAC12222")
+    assert "ELECTROLUX 12000 Btu" in productos[2]["nombre"]
+
+
+def test_marca_publicada_en_la_tarjeta(productos):
+    assert [p["marca_tarjeta"] for p in productos[:6]] == [
+        "MABE", "FINLANDEK", "ELECTROLUX", "LG", "ARTIC AIR X 2", "FINLANDEK",
+    ]  # fmt: skip
