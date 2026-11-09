@@ -5,13 +5,18 @@
 
 **Reporte publicado:** https://jorgeahernandezc80.github.io/aires-exito-devops/
 
-Este es mi proyecto para el curso *Programación para Análisis de Datos* (Ingeniería de Software
-y Datos, IU Digital de Antioquia). La EA2 la hice de forma individual. Soy Jorge Andrés Hernández.
+Este es nuestro proyecto para el curso *Programación para Análisis de Datos* (Ingeniería de
+Software y Datos, IU Digital de Antioquia). Lo hicimos en grupo:
 
-| Evidencia | Qué hice |
+- Lady Laura Olmos
+- Selenis Lorena Ramos Guardo
+- María Isabel Atencia Ramos
+- Jorge Andrés Hernández
+
+| Evidencia | Qué hicimos |
 |---|---|
 | EA1 | En grupo hicimos un notebook de Colab que saca los aires acondicionados de Éxito.com con Selenium y Beautiful Soup. Está en `legacy/` sin cambios. |
-| EA2 | Pasé ese notebook a un paquete de Python con Git y GitHub, le hice pruebas automáticas, configuré CI con GitHub Actions y el despliegue automático del reporte en GitHub Pages. |
+| EA2 | Pasamos ese notebook a un paquete de Python con Git y GitHub, le hicimos pruebas automáticas, configuramos CI con GitHub Actions y el despliegue automático del reporte en GitHub Pages. |
 
 ## Lo que salió con los datos del 8 de noviembre de 2026
 
@@ -41,7 +46,7 @@ data/           CSV crudo y limpio, y la fecha de la extracción
   workflows/actualizar-datos.yml  scraping cada semana y PR automático (todavía experimental)
 docs/
   flujo-devops.md   cómo funciona el flujo de trabajo
-  bitacora.md       lo que fui haciendo, lo que falló y cómo lo arreglé
+  bitacora.md       lo que fuimos haciendo, lo que falló y cómo lo arreglamos
 legacy/         el notebook original de la EA1
 ```
 
@@ -65,12 +70,12 @@ Si no tienes Chrome, puedes trabajar con páginas que ya estén descargadas:
 
 ## Flujo de trabajo
 
-Usé **GitHub Flow**: en `main` siempre debe estar algo que funcione. Cada cambio lo hago en una
-rama aparte (`feature/`, `fix/`, `test/`, `ci/`, `cd/`, `docs/`), abro un pull request, el CI lo
-revisa y cuando se fusiona se publica solo. Lo explico con más detalle en
+Usamos **GitHub Flow**: en `main` siempre debe estar algo que funcione. Cada cambio lo hacemos en
+una rama aparte (`feature/`, `fix/`, `test/`, `ci/`, `cd/`, `docs/`), abrimos un pull request, el
+CI lo revisa y cuando se fusiona se publica solo. Lo explicamos con más detalle en
 [docs/flujo-devops.md](docs/flujo-devops.md).
 
 ## Ética
 
-Solo saco datos públicos de productos (nada de datos personales), con pausas entre página y
-página, y lo uso únicamente para el curso.
+Solo sacamos datos públicos de productos (nada de datos personales), con pausas entre página y
+página, y los usamos únicamente para el curso.

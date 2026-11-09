@@ -3,9 +3,9 @@
 ## 1. Ramas: GitHub Flow
 
 La única rama que se queda para siempre es `main`, y la idea es que siempre esté lista para
-publicarse. Todo lo demás lo hago en ramas cortas, y el prefijo dice para qué es cada una:
+publicarse. Todo lo demás lo hacemos en ramas cortas, y el prefijo dice para qué es cada una:
 
-| Prefijo | Para qué la uso | Ejemplos de este repo |
+| Prefijo | Para qué la usamos | Ejemplos de este repo |
 |---|---|---|
 | `feature/` | algo nuevo | `feature/modularizar-scraper`, `feature/reporte-web` |
 | `fix/` | arreglar un error | `fix/parser-nombre-vendedor`, `fix/normalizar-marcas-btu` |
@@ -13,7 +13,7 @@ publicarse. Todo lo demás lo hago en ramas cortas, y el prefijo dice para qué 
 | `ci/`, `cd/` | el pipeline | `ci/github-actions`, `cd/github-pages` |
 | `docs/` | documentación | `docs/readme-flujo-devops` |
 
-Para los mensajes de commit usé la convención *Conventional Commits* (`feat:`, `fix:`, `test:`,
+Para los mensajes de commit usamos la convención *Conventional Commits* (`feat:`, `fix:`, `test:`,
 `ci:`, `data:`, `docs:`, `refactor:`). Así, mirando el historial, se entiende rápido qué tipo de
 cambio fue cada uno.
 
@@ -35,11 +35,11 @@ flowchart LR
 ```
 
 1. **Rama**: `git switch -c fix/<tema>` desde un `main` actualizado.
-2. **Primero la prueba**: escribo una prueba que muestre el error (en rojo) y después lo arreglo
+2. **Primero la prueba**: escribimos una prueba que muestre el error (en rojo) y después lo arreglamos
    hasta que pase.
 3. **Push**: esto dispara `ci.yml`, que corre ruff y pytest en tres versiones de Python y pide
    mínimo 85 % de cobertura.
-4. **Pull request**: tiene una plantilla en `.github/pull_request_template.md`. Solo lo fusiono si
+4. **Pull request**: tiene una plantilla en `.github/pull_request_template.md`. Solo lo fusionamos si
    el CI salió en verde.
 5. **Merge a main**: esto dispara `deploy.yml`, que vuelve a correr las pruebas, arma el reporte,
    lo publica en GitHub Pages y revisa que la página sí responda.
@@ -59,10 +59,10 @@ Las pruebas no necesitan internet ni Chrome. El scraper recibe una función
 ## 4. El conflicto de merge
 
 `fix/normalizar-marcas-btu` y `feature/categoria-producto` salieron del mismo commit de `main`,
-como si las estuvieran haciendo dos personas al tiempo, y las dos tocaron `limpieza.py` y
+como pasa cuando dos integrantes del grupo trabajan al tiempo, y las dos tocaron `limpieza.py` y
 `tests/test_limpieza_analisis.py`. Git pudo unir solo `limpieza.py` porque los cambios estaban en
 partes distintas, pero en las pruebas sí hubo conflicto: las dos ramas cambiaron la misma línea
-de `import` y agregaron pruebas al final del archivo. Lo resolví juntando los imports y dejando
+de `import` y agregaron pruebas al final del archivo. Lo resolvimos juntando los imports y dejando
 las pruebas de las dos ramas. En el mensaje del commit de merge quedó explicado.
 
 ## 5. Lo que hay que configurar en GitHub
