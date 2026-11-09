@@ -28,3 +28,20 @@ evidencia del proceso y también para no olvidarme yo de las cosas.
 3. **Mayúsculas**: el `.title()` que usábamos convierte "LG" en "Lg" y "TCL" en "Tcl".
 4. Hay productos que no son aires acondicionados (ventiladores, deflectores, hasta combos de
    cocina) y se están metiendo en el análisis.
+
+## 8 de noviembre de 2026 – Saber qué es realmente cada producto
+
+- Agregué una variable `categoria` (Aire acondicionado, Enfriador portátil, Ventilador,
+  Accesorio o repuesto, Otro) y otra `es_aire`. Me sorprendió el resultado: solo 101 de los 201
+  productos son equipos de aire acondicionado. Lo demás son enfriadores pequeños, ventiladores,
+  calentadores, válvulas y cosas así.
+- También mejoré `tipo` para que reconozca "On/Off", "Onoff", "On Off" e "Inverte" (que es
+  "Inverter" mal escrito por el vendedor).
+- **Me equivoqué**: en la primera versión el "Aire Ac Port 12000BTU … ELECTROLUX" me quedaba como
+  "Otro", y el "Mini Ventilador De Mesa" no entraba en ventiladores. Me di cuenta porque revisé los
+  201 productos uno por uno y no solo los casos de prueba que yo había escogido. Los agregué como
+  pruebas nuevas y corregí las reglas.
+- **Otro error mío**: hice un reemplazo de texto con un script y no se aplicó, porque antes
+  `ruff format` había partido la línea en varias. No salió ningún error, simplemente la prueba
+  seguía en rojo. Tuve que revisar regex por regex hasta encontrarlo. Aprendí a usar una forma de
+  editar que avise cuando no encuentra el texto.
