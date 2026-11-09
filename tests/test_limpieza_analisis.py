@@ -2,7 +2,7 @@ import pandas as pd
 import pytest
 
 from aires_exito.analisis import indicadores, por_grupo, resumen_precios
-from aires_exito.limpieza import clasificar_tipo, preparar_dataset
+from aires_exito.limpieza import clasificar_tipo, detectar_marca, extraer_btu, preparar_dataset
 
 
 @pytest.fixture
@@ -65,3 +65,32 @@ def test_indicadores(df_limpio):
     assert ind["pct_patrocinados"] == pytest.approx(10.0)
     assert ind["pct_con_descuento"] == pytest.approx(80.0)
     assert ind["paginas"] == 1
+
+
+# --- fix/normalizar-marcas-btu ---
+
+
+@pytest.mark.parametrize(
+    "marca_tarjeta, esperado",
+    [("LG", "LG"), ("TCL", "TCL"), ("MABE", "Mabe"), ("HOME ELEMENTS", "Home Elements"),
+     ("GENERICO", "Genérico"), ("ARTIC AIR X 2", "Artic Air"), ("GENERAL ELECTIC", "GE")],
+)  # fmt: skip
+def test_marca_desde_la_tarjeta_normalizada(marca_tarjeta, esperado):
+    assert detectar_marca("cualquier nombre", "", marca_tarjeta) == esperado
+
+
+def test_marca_sin_sufijos_de_referencia(df_limpio):
+    assert set(df_limpio["marca"]) >= {"LG", "Finlandek", "Mabe", "Artic Air"}
+    assert not df_limpio["marca"].str.contains(r"^\.|\d", regex=True).any()
+
+
+@pytest.mark.parametrize(
+    "nombre, btu",
+    [("Aire LG 12000 Btu 110 V", 12000), ("Minisplit 12,000Btu Midea", 12000),
+     ("Aire Kalley 12.000Btu Tipo Split", 12000), ("Gree Cosmo 24.000 Btu", 24000),
+     ("Induham 12.000 Btus Blanco", 12000),
+     ("Aire Acondi. 1200BTU Inverter ELECTROLUX 12000 Btu", 12000),
+     ("Ventilador de pedestal", None)],
+)  # fmt: skip
+def test_extraer_btu(nombre, btu):
+    assert extraer_btu(nombre) == btu
