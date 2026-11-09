@@ -19,12 +19,15 @@ def detectar_marca(nombre: str, texto: str) -> str:
     nombre, texto = str(nombre), str(texto)
     if nombre in texto:
         despues = texto.split(nombre, 1)[1].strip()
-        m = re.match(
-            r"([A-Za-zÁÉÍÓÚÑ0-9\+\.& ]{2,25}?)(?=\s+-\s|\s+\d{1,2}\s*%|\s+\$|$)", despues
-        )
-        if m and m.group(1).strip() and m.group(1).strip().lower() not in (
-            "producto genérico",
-            "producto generico",
+        m = re.match(r"([A-Za-zÁÉÍÓÚÑ0-9\+\.& ]{2,25}?)(?=\s+-\s|\s+\d{1,2}\s*%|\s+\$|$)", despues)
+        if (
+            m
+            and m.group(1).strip()
+            and m.group(1).strip().lower()
+            not in (
+                "producto genérico",
+                "producto generico",
+            )
         ):
             return m.group(1).strip().title()
     for marca in MARCAS:
