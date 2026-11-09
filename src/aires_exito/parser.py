@@ -15,9 +15,7 @@ URL_SITIO = "https://www.exito.com"
 
 _RE_PRECIO = re.compile(r"\$\s*([\d\.]{4,})")
 _RE_DESCUENTO = re.compile(r"(\d{1,2})\s*%")
-_RE_VENDEDOR = re.compile(
-    r"Vendido por:\s*(.+?)(?=\s+\d\.\d\s+\(|\s+\(\d+\s*opini|\s+Agregar|$)"
-)
+_RE_VENDEDOR = re.compile(r"Vendido por:\s*(.+?)(?=\s+\d\.\d\s+\(|\s+\(\d+\s*opini|\s+Agregar|$)")
 _RE_CALIFICACION = re.compile(r"(\d\.\d)\s*\((\d+)\s*opini")
 _RE_NOMBRE_TEXTO = re.compile(
     r"(Aire\s.+?\d{4,5}\s*Btu\S*(?:\s+\d+\s*V)?(?:\s+[A-Z0-9\-]{5,})?)", re.I

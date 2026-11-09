@@ -22,11 +22,7 @@ def resumen_precios(df: pd.DataFrame) -> dict:
 
 
 def por_grupo(df: pd.DataFrame, columna: str) -> pd.DataFrame:
-    return (
-        df.groupby(columna)["precio_actual"]
-        .agg(AGREGADOS)
-        .sort_values("count", ascending=False)
-    )
+    return df.groupby(columna)["precio_actual"].agg(AGREGADOS).sort_values("count", ascending=False)
 
 
 def indicadores(df: pd.DataFrame) -> dict:
