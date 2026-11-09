@@ -5,13 +5,18 @@
 
 **Reporte publicado:** https://jorgeahernandezc80.github.io/aires-exito-devops/
 
-Este es mi proyecto para el curso *Programación para Análisis de Datos* (Ingeniería de Software
-y Datos, IU Digital de Antioquia). La EA2 la hice de forma individual. Soy Jorge Andrés Hernández.
+Este es un proyecto grupal para el curso *Programación para Análisis de Datos* (Ingeniería de
+Software y Datos, IU Digital de Antioquia). Los integrantes del grupo somos:
 
-| Evidencia | Qué hice |
+- Lady Laura Olmos
+- Selenis Lorena Ramos Guardo
+- María Isabel Atencia Ramos
+- Jorge Andrés Hernández
+
+| Evidencia | Qué se hizo |
 |---|---|
 | EA1 | En grupo hicimos un notebook de Colab que saca los aires acondicionados de Éxito.com con Selenium y Beautiful Soup. Está en `legacy/` sin cambios. |
-| EA2 | Pasé ese notebook a un paquete de Python con Git y GitHub, le hice pruebas automáticas, configuré CI con GitHub Actions y el despliegue automático del reporte en GitHub Pages. |
+| EA2 | Pasamos ese notebook a un paquete de Python con Git y GitHub, le hicimos pruebas automáticas y configuramos la integración continua con GitHub Actions y el despliegue automático del reporte en GitHub Pages. |
 
 ## Lo que salió con los datos del 8 de noviembre de 2026
 
