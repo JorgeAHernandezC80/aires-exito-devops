@@ -1,0 +1,52 @@
+# Actualización programada de los datos (experimental).
+# Cada lunes vuelve a hacer el scraping con Selenium en el runner de GitHub (que ya trae
+# Google Chrome), valida la extracción y, si es válida, abre un pull request con los datos
+# nuevos. El PR pasa por CI y, al fusionarse, el workflow de Deploy publica el reporte.
+#
+# Requisito: Settings > Actions > General > "Allow GitHub Actions to create and approve
+# pull requests". Si el sitio bloquea al runner, el job falla en "validar" y no se publica nada.
+name: Actualizar datos (semanal)
+
+on:
+  schedule:
+    - cron: "17 11 * * 1" # lunes 06:17 hora de Colombia (11:17 UTC)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  scraping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[scraping]"
+      - name: Scraping con Selenium (Chrome headless)
+        run: python -m aires_exito scrape --salida data/aires_acondicionados_exito_crudo.csv
+      - name: Validar la extracción
+        run: python -m aires_exito validar --entrada data/aires_acondicionados_exito_crudo.csv
+      - name: Limpiar y fechar
+        run: |
+          python -m aires_exito limpiar
+          date -u +%F > data/fecha_extraccion.txt
+      - name: Abrir pull request con los datos nuevos
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if git diff --quiet -- data/; then echo "Sin cambios en los datos"; exit 0; fi
+          RAMA="data/actualizacion-$(date -u +%Y%m%d)"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c "$RAMA"
+          git add data/
+          git commit -m "data: actualización automática del $(date -u +%F)"
+          git push -u origin "$RAMA"
+          gh pr create --base main --head "$RAMA" \
+            --title "data: actualización automática del $(date -u +%F)" \
+            --body "Extracción semanal generada por el workflow *Actualizar datos*. Revisar el diff del CSV antes de fusionar."
