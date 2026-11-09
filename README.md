@@ -20,6 +20,8 @@ Este es un proyecto grupal para el curso *Programación para Análisis de Datos*
 
 ## Integrantes
 
+Los integrantes del grupo somos:
+
 - Lady Laura Olmos
 - Selenis Lorena Ramos Guardo
 - María Isabel Atencia Ramos
