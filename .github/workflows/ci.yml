@@ -50,7 +50,7 @@ jobs:
         run: pytest --cov=aires_exito --cov-report=term-missing --cov-report=xml --cov-fail-under=85
       - name: Guardar reporte de cobertura
         if: matrix.python-version == '3.12'
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: cobertura
           path: coverage.xml
