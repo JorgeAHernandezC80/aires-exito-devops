@@ -5,8 +5,9 @@
 
 **Reporte publicado:** https://jorgeahernandezc80.github.io/aires-exito-devops/
 
-Este es nuestro proyecto para el curso *Programación para Análisis de Datos* (Ingeniería de
-Software y Datos, IU Digital de Antioquia). Lo hicimos en grupo:
+Este es nuestro proyecto para el curso *Programación para Análisis de Datos*
+(PREICA2602B020048), del programa de Ingeniería de Software y Datos de la Institución
+Universitaria Digital de Antioquia. Las dos evidencias las hicimos en grupo:
 
 - Lady Laura Olmos
 - Selenis Lorena Ramos Guardo
@@ -15,20 +16,21 @@ Software y Datos, IU Digital de Antioquia). Lo hicimos en grupo:
 
 | Evidencia | Qué hicimos |
 |---|---|
-| EA1 | En grupo hicimos un notebook de Colab que saca los aires acondicionados de Éxito.com con Selenium y Beautiful Soup. Está en `legacy/` sin cambios. |
-| EA2 | Pasamos ese notebook a un paquete de Python con Git y GitHub, le hicimos pruebas automáticas, configuramos CI con GitHub Actions y el despliegue automático del reporte en GitHub Pages. |
+| **S30 – Evidencia de aprendizaje 1.** Análisis y herramientas de extracción de datos | Un notebook de Google Colab que extrae los aires acondicionados de Éxito.com con Selenium y Beautiful Soup, y hace un análisis descriptivo de los precios. Está en la carpeta `legacy/` sin cambios. |
+| **S35 – Evidencia de aprendizaje 2.** Optimizando la productividad en el mundo del software | Convertimos ese notebook en un paquete de Python versionado con Git y GitHub, le agregamos pruebas automáticas y configuramos un pipeline de CI/CD con GitHub Actions que publica el reporte en GitHub Pages. |
 
-## Lo que salió con los datos del 8 de noviembre de 2026
+## Resultados de la extracción del 8 de noviembre de 2026
 
-- 201 productos distintos en 16 páginas del listado.
-- De esos, solo **101 son equipos de aire acondicionado**. Los demás son enfriadores pequeños
+- Se obtuvieron 201 productos distintos en 16 páginas del listado.
+- De ellos, solo **101 son equipos de aire acondicionado**. Los demás son enfriadores pequeños
   (37), otros artículos (27), ventiladores (25) y accesorios o repuestos (11).
-- El precio mediano de un equipo es **$1.749.900 COP**, y van desde $827.955 hasta $5.519.900.
-- Los inverter tienen una mediana de $1.929.900 (53 equipos) y los convencionales de
-  $1.416.937 (30 equipos).
-- El 88,6 % de los productos muestra un precio anterior, o sea que casi todo aparece en oferta.
+- El precio mediano de un equipo es **$1.749.900 COP**, y los precios van desde $827.955 hasta
+  $5.519.900.
+- Los equipos *inverter* tienen una mediana de $1.929.900 (53 equipos), y los convencionales,
+  de $1.416.937 (30 equipos).
+- El 88,6 % de los productos muestra un precio anterior; es decir, casi todo aparece en oferta.
 
-## Cómo está organizado
+## Estructura del repositorio
 
 ```
 src/aires_exito/
@@ -38,7 +40,7 @@ src/aires_exito/
   analisis.py   estadística descriptiva
   reporte.py    arma el sitio (HTML + SVG) que se publica en GitHub Pages
   cli.py        python -m aires_exito {scrape|desde-html|limpiar|validar|reporte}
-tests/          las pruebas con pytest, usando tarjetas reales (tests/fixtures/)
+tests/          pruebas con pytest sobre tarjetas reales (tests/fixtures/)
 data/           CSV crudo y limpio, y la fecha de la extracción
 .github/
   workflows/ci.yml                lint + pruebas en Python 3.11, 3.12 y 3.13
@@ -50,7 +52,7 @@ docs/
 legacy/         el notebook original de la EA1
 ```
 
-## Cómo correrlo en tu computador
+## Cómo ejecutarlo
 
 ```bash
 python -m venv .venv && source .venv/bin/activate
@@ -65,17 +67,17 @@ python -m aires_exito limpiar
 python -m aires_exito reporte            # genera _site/index.html
 ```
 
-Si no tienes Chrome, puedes trabajar con páginas que ya estén descargadas:
+Si no se tiene Chrome, se puede trabajar con páginas ya descargadas:
 `python -m aires_exito desde-html data/raw`.
 
 ## Flujo de trabajo
 
-Usamos **GitHub Flow**: en `main` siempre debe estar algo que funcione. Cada cambio lo hacemos en
-una rama aparte (`feature/`, `fix/`, `test/`, `ci/`, `cd/`, `docs/`), abrimos un pull request, el
-CI lo revisa y cuando se fusiona se publica solo. Lo explicamos con más detalle en
-[docs/flujo-devops.md](docs/flujo-devops.md).
+Usamos **GitHub Flow**: en `main` siempre debe haber una versión que funcione. Cada cambio lo
+hacemos en una rama aparte (`feature/`, `fix/`, `test/`, `ci/`, `cd/`, `docs/`) y abrimos un
+*pull request*; el CI lo revisa y, cuando se fusiona, el reporte se publica automáticamente. Lo
+explicamos con más detalle en [docs/flujo-devops.md](docs/flujo-devops.md).
 
-## Ética
+## Consideraciones éticas
 
-Solo sacamos datos públicos de productos (nada de datos personales), con pausas entre página y
-página, y los usamos únicamente para el curso.
+Solo extraemos datos públicos de productos (ningún dato personal), con pausas entre una página
+y otra, y los usamos únicamente con fines académicos.
