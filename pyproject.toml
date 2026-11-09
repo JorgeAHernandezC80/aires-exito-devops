@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "aires-exito"
+version = "0.1.0"
+description = "Web scraping y análisis de aires acondicionados de Éxito.com (IU Digital - Programación para Análisis de Datos)"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Jorge Andrés Hernández" }]
+dependencies = [
+    "beautifulsoup4>=4.12",
+    "lxml>=5.0",
+    "pandas>=2.2",
+]
+
+[project.optional-dependencies]
+scraping = ["selenium>=4.20"]
+reporte = ["matplotlib>=3.8"]
+dev = ["pytest>=8", "pytest-cov>=5", "ruff>=0.6"]
+
+[project.scripts]
+aires-exito = "aires_exito.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]

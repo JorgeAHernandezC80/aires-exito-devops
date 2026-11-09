@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+build/
+dist/
+
+# Pruebas y cobertura
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Artefactos generados (el sitio lo construye el pipeline de CD)
+_site/
+*.png
+!docs/img/*.png
+
+# HTML crudo descargado (pesado, se regenera con el scraper)
+data/raw/
+
+# Entorno local
+.env
+.DS_Store
+.ipynb_checkpoints/
