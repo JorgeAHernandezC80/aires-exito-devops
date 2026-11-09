@@ -5,19 +5,32 @@
 
 **Reporte publicado:** https://jorgeahernandezc80.github.io/aires-exito-devops/
 
-Este es nuestro proyecto para el curso *Programación para Análisis de Datos*
-(PREICA2602B020048), del programa de Ingeniería de Software y Datos de la Institución
-Universitaria Digital de Antioquia. Las dos evidencias las hicimos en grupo:
+Este es un proyecto grupal para el curso *Programación para Análisis de Datos*
+(PREICA2602B020048), del programa de Ingeniería de Software y Datos de la IU Digital de Antioquia.
+
+## Índice
+
+1. [Integrantes](#integrantes)
+2. [Evidencias](#evidencias)
+3. [Resultados de la extracción del 8 de noviembre de 2026](#resultados-de-la-extracción-del-8-de-noviembre-de-2026)
+4. [Estructura del repositorio](#estructura-del-repositorio)
+5. [Cómo ejecutarlo](#cómo-ejecutarlo)
+6. [Flujo de trabajo](#flujo-de-trabajo)
+7. [Consideraciones éticas](#consideraciones-éticas)
+
+## Integrantes
 
 - Lady Laura Olmos
 - Selenis Lorena Ramos Guardo
 - María Isabel Atencia Ramos
 - Jorge Andrés Hernández
 
-| Evidencia | Qué hicimos |
+## Evidencias
+
+| Evidencia | Qué se hizo |
 |---|---|
-| **S30 – Evidencia de aprendizaje 1.** Análisis y herramientas de extracción de datos | Un notebook de Google Colab que extrae los aires acondicionados de Éxito.com con Selenium y Beautiful Soup, y hace un análisis descriptivo de los precios. Está en la carpeta `legacy/` sin cambios. |
-| **S35 – Evidencia de aprendizaje 2.** Optimizando la productividad en el mundo del software | Convertimos ese notebook en un paquete de Python versionado con Git y GitHub, le agregamos pruebas automáticas y configuramos un pipeline de CI/CD con GitHub Actions que publica el reporte en GitHub Pages. |
+| **EA1** – S30. Análisis y herramientas de extracción de datos | En grupo hicimos un notebook de Google Colab que saca los aires acondicionados de Éxito.com con Selenium y Beautiful Soup. Está en `legacy/` sin cambios. |
+| **EA2** – S35. Optimizando la productividad en el mundo del software | Pasamos ese notebook a un paquete de Python con Git y GitHub, le hicimos pruebas automáticas y configuramos la integración continua con GitHub Actions y el despliegue automático del reporte en GitHub Pages. |
 
 ## Resultados de la extracción del 8 de noviembre de 2026
 
