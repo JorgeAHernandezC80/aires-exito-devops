@@ -4,6 +4,7 @@ Comandos:
   scrape        Recorre Éxito.com con Selenium y guarda el CSV crudo.
   desde-html    Procesa páginas HTML guardadas (data/raw/page_XX.html) sin navegador.
   limpiar       Genera el CSV limpio con las variables derivadas.
+  reporte       Construye el sitio estático (_site/) que se publica en GitHub Pages.
 """
 
 from __future__ import annotations
@@ -18,6 +19,7 @@ from .scraper import recorrer_paginas
 
 CSV_CRUDO = Path("data/aires_acondicionados_exito_crudo.csv")
 CSV_LIMPIO = Path("data/aires_acondicionados_exito.csv")
+FECHA = Path("data/fecha_extraccion.txt")
 
 
 def _guardar(df: pd.DataFrame, ruta: Path) -> None:
@@ -50,6 +52,14 @@ def cmd_limpiar(args) -> None:
     _guardar(preparar_dataset(df), Path(args.salida))
 
 
+def cmd_reporte(args) -> None:
+    from .reporte import generar_sitio
+
+    fecha = args.fecha or (FECHA.read_text().strip() if FECHA.exists() else None)
+    r = generar_sitio(Path(args.entrada), Path(args.salida), fecha)
+    print(f"Sitio generado en {args.salida}: {r['total']} productos, {r['aires']} equipos")
+
+
 def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(prog="aires-exito", description=__doc__.splitlines()[0])
     sub = ap.add_subparsers(dest="comando", required=True)
@@ -68,6 +78,12 @@ def main(argv: list[str] | None = None) -> None:
     lp.add_argument("--entrada", default=str(CSV_CRUDO))
     lp.add_argument("--salida", default=str(CSV_LIMPIO))
     lp.set_defaults(func=cmd_limpiar)
+
+    rp = sub.add_parser("reporte", help="generar el sitio estático")
+    rp.add_argument("--entrada", default=str(CSV_LIMPIO))
+    rp.add_argument("--salida", default="_site")
+    rp.add_argument("--fecha", default=None, help="fecha de la extracción (AAAA-MM-DD)")
+    rp.set_defaults(func=cmd_reporte)
 
     args = ap.parse_args(argv)
     args.func(args)
