@@ -4,6 +4,7 @@ Comandos:
   scrape        Recorre Éxito.com con Selenium y guarda el CSV crudo.
   desde-html    Procesa páginas HTML guardadas (data/raw/page_XX.html) sin navegador.
   limpiar       Genera el CSV limpio con las variables derivadas.
+  validar       Revisa que un CSV extraído sea razonable antes de publicarlo.
   reporte       Construye el sitio estático (_site/) que se publica en GitHub Pages.
 """
 
@@ -52,6 +53,28 @@ def cmd_limpiar(args) -> None:
     _guardar(preparar_dataset(df), Path(args.salida))
 
 
+def validar_dataset(df: pd.DataFrame, minimo: int = 50) -> list[str]:
+    """Problemas que impiden publicar una extracción (lista vacía = todo bien)."""
+    problemas = []
+    if len(df) < minimo:
+        problemas.append(f"solo {len(df)} productos (mínimo {minimo}); ¿cambió el sitio?")
+    for col in ("nombre", "url", "precio_actual"):
+        if col not in df or df[col].isna().any():
+            problemas.append(f"hay valores nulos o falta la columna '{col}'")
+    if "url" in df and not df["url"].is_unique:
+        problemas.append("hay URLs repetidas")
+    return problemas
+
+
+def cmd_validar(args) -> None:
+    problemas = validar_dataset(pd.read_csv(args.entrada, encoding="utf-8-sig"), args.minimo)
+    for p in problemas:
+        print(f"ERROR: {p}")
+    if problemas:
+        raise SystemExit(1)
+    print("Extracción válida.")
+
+
 def cmd_reporte(args) -> None:
     from .reporte import generar_sitio
 
@@ -78,6 +101,11 @@ def main(argv: list[str] | None = None) -> None:
     lp.add_argument("--entrada", default=str(CSV_CRUDO))
     lp.add_argument("--salida", default=str(CSV_LIMPIO))
     lp.set_defaults(func=cmd_limpiar)
+
+    va = sub.add_parser("validar", help="validar una extracción")
+    va.add_argument("--entrada", default=str(CSV_CRUDO))
+    va.add_argument("--minimo", type=int, default=50)
+    va.set_defaults(func=cmd_validar)
 
     rp = sub.add_parser("reporte", help="generar el sitio estático")
     rp.add_argument("--entrada", default=str(CSV_LIMPIO))
