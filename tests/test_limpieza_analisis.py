@@ -88,7 +88,8 @@ def test_marca_sin_sufijos_de_referencia(df_limpio):
     "nombre, btu",
     [("Aire LG 12000 Btu 110 V", 12000), ("Minisplit 12,000Btu Midea", 12000),
      ("Aire Kalley 12.000Btu Tipo Split", 12000), ("Gree Cosmo 24.000 Btu", 24000),
-     ("Induham 12.000 Btus Blanco", 12000), ("Aire Acondi. 1200BTU Inverter ELECTROLUX 12000 Btu", 12000),
+     ("Induham 12.000 Btus Blanco", 12000),
+     ("Aire Acondi. 1200BTU Inverter ELECTROLUX 12000 Btu", 12000),
      ("Ventilador de pedestal", None)],
 )  # fmt: skip
 def test_extraer_btu(nombre, btu):
