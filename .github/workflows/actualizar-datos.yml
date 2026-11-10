@@ -40,13 +40,26 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if git diff --quiet -- data/; then echo "Sin cambios en los datos"; exit 0; fi
+          FECHA="$(date -u +%F)"
+          # Una sola rama por día. Si el workflow corre varias veces el mismo día, la rama se
+          # sobrescribe con la extracción más reciente (antes el push era rechazado).
           RAMA="data/actualizacion-$(date -u +%Y%m%d)"
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git switch -c "$RAMA"
+          git switch -C "$RAMA"
           git add data/
-          git commit -m "data: actualización automática del $(date -u +%F)"
-          git push -u origin "$RAMA"
-          gh pr create --base main --head "$RAMA" \
-            --title "data: actualización automática del $(date -u +%F)" \
-            --body "Extracción semanal generada por el workflow *Actualizar datos*. Revisar el diff del CSV antes de fusionar."
+          git commit -m "data: actualización automática del $FECHA"
+          git push --force -u origin "$RAMA"
+
+          # Si ya hay un PR abierto para esta rama, el push anterior lo actualiza y no se abre otro.
+          ABIERTOS="$(gh pr list --head "$RAMA" --state open --json number --jq length)"
+          if [ "$ABIERTOS" != "0" ]; then
+            echo "Ya existe un PR abierto para $RAMA; quedó actualizado con los datos nuevos."
+            exit 0
+          fi
+          if ! gh pr create --base main --head "$RAMA" \
+            --title "data: actualización automática del $FECHA" \
+            --body "Extracción generada por el workflow *Actualizar datos*. Revisar el diff del CSV antes de fusionar."; then
+            echo "::error::No se pudo abrir el PR. Activar Settings > Actions > General > Workflow permissions > 'Allow GitHub Actions to create and approve pull requests'. Los datos quedaron en la rama $RAMA."
+            exit 1
+          fi

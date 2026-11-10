@@ -86,3 +86,15 @@ quede como evidencia del proceso y también para que nadie del grupo se olvide d
   fusionamos de a uno, esperando a que Dependabot actualizara los demás y su CI volviera a pasar.
   El que más nos preocupaba era `configure-pages`, porque toca la publicación, así que revisamos
   que el Deploy siguiera en verde después de fusionarlo.
+
+## 10 de noviembre de 2026 – Primer error real del workflow semanal
+
+- Corrimos a mano el workflow *Actualizar datos (semanal)* y el scraping con Selenium **sí
+  funcionó** dentro de GitHub Actions, que era lo que no habíamos podido probar.
+- Pero falló el último paso: `git push` rechazó la rama `data/actualizacion-20261110` porque ya
+  existía. Una ejecución anterior del mismo día la había subido y después no pudo abrir el PR, y
+  como el nombre de la rama solo depende de la fecha, el segundo intento chocó con el primero.
+- Lo arreglamos así: ahora hay una sola rama por día y se sobrescribe con `--force` usando la
+  extracción más reciente; el PR solo se abre si no hay uno abierto para esa rama, y si GitHub no
+  deja crearlo por permisos, el job muestra un error que dice qué opción activar. Antes de subirlo
+  lo probamos en local con un remoto donde la rama ya existía.
