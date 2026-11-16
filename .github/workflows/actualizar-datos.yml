@@ -29,6 +29,14 @@ jobs:
       - run: pip install -e ".[scraping]"
       - name: Scraping con Selenium (Chrome headless)
         run: python -m aires_exito scrape --salida data/aires_acondicionados_exito_crudo.csv
+      - name: Guardar evidencia del fallo (HTML y captura)
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: debug-scraping
+          path: debug/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Validar la extracción
         run: python -m aires_exito validar --entrada data/aires_acondicionados_exito_crudo.csv
       - name: Limpiar y fechar

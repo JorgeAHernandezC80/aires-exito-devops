@@ -21,6 +21,7 @@ _site/
 
 # HTML crudo descargado (pesado, se regenera con el scraper)
 data/raw/
+debug/
 
 # Entorno local
 .env

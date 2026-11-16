@@ -11,6 +11,7 @@ import random
 import time
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
+from pathlib import Path
 
 import pandas as pd
 
@@ -89,24 +90,44 @@ def scroll_hasta_el_final(driver, pausa=1.2, max_intentos=10):  # pragma: no cov
         previo = actual
 
 
+CARPETA_DEBUG = Path("debug")
+
+
+def guardar_evidencia(driver, pagina: int) -> None:  # pragma: no cover
+    """Guarda HTML y captura de lo que recibió el navegador, para diagnosticar bloqueos."""
+    CARPETA_DEBUG.mkdir(exist_ok=True)
+    (CARPETA_DEBUG / f"page_{pagina:02d}.html").write_text(driver.page_source, encoding="utf-8")
+    driver.save_screenshot(str(CARPETA_DEBUG / f"page_{pagina:02d}.png"))
+    print(f"  título recibido: {driver.title!r} | url final: {driver.current_url}")
+    print(f"  evidencia guardada en {CARPETA_DEBUG}/page_{pagina:02d}.(html|png)")
+
+
 @contextmanager
-def navegador() -> Iterator[Callable[[int], str | None]]:  # pragma: no cover
+def navegador(intentos: int = 3) -> Iterator[Callable[[int], str | None]]:  # pragma: no cover
     from selenium.common.exceptions import TimeoutException
     from selenium.webdriver.common.by import By
     from selenium.webdriver.support import expected_conditions as EC
     from selenium.webdriver.support.ui import WebDriverWait
 
     driver = crear_driver()
-    wait = WebDriverWait(driver, 15)
+    wait = WebDriverWait(driver, 30)
 
     def obtener_html(pagina: int) -> str | None:
-        driver.get(f"{BASE_URL}?page={pagina}")
-        try:
-            wait.until(EC.presence_of_element_located((By.TAG_NAME, "article")))
-        except TimeoutException:
-            return None
-        scroll_hasta_el_final(driver)
-        return driver.page_source
+        # La primera página se reintenta: si falla, el sitio está lento o bloqueó al runner.
+        # En las siguientes, no encontrar <article> es el fin normal del listado.
+        for intento in range(1, (intentos if pagina == 1 else 1) + 1):
+            driver.get(f"{BASE_URL}?page={pagina}")
+            try:
+                wait.until(EC.presence_of_element_located((By.TAG_NAME, "article")))
+            except TimeoutException:
+                if pagina == 1:
+                    print(f"Página 1, intento {intento}/{intentos}: no aparecieron productos.")
+                    guardar_evidencia(driver, pagina)
+                    time.sleep(5 * intento)
+                continue
+            scroll_hasta_el_final(driver)
+            return driver.page_source
+        return None
 
     try:
         yield obtener_html

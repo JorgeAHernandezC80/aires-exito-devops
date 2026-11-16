@@ -32,7 +32,15 @@ def _guardar(df: pd.DataFrame, ruta: Path) -> None:
 def cmd_scrape(args) -> None:  # pragma: no cover - requiere Chrome
     from .scraper import scrapear_todo
 
-    _guardar(scrapear_todo(args.max_paginas), Path(args.salida))
+    df = scrapear_todo(args.max_paginas)
+    if df.empty:
+        # No se sobrescribe el CSV anterior con un archivo vacío.
+        print(
+            "ERROR: el scraping no obtuvo productos. Éxito.com no mostró el listado "
+            "(bloqueo al runner, página lenta o cambio de estructura). Revisar debug/."
+        )
+        raise SystemExit(1)
+    _guardar(df, Path(args.salida))
 
 
 def cmd_desde_html(args) -> None:
@@ -67,7 +75,11 @@ def validar_dataset(df: pd.DataFrame, minimo: int = 50) -> list[str]:
 
 
 def cmd_validar(args) -> None:
-    problemas = validar_dataset(pd.read_csv(args.entrada, encoding="utf-8-sig"), args.minimo)
+    try:
+        df = pd.read_csv(args.entrada, encoding="utf-8-sig")
+    except pd.errors.EmptyDataError:
+        df = pd.DataFrame()
+    problemas = validar_dataset(df, args.minimo)
     for p in problemas:
         print(f"ERROR: {p}")
     if problemas:

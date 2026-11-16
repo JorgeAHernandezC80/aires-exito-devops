@@ -98,3 +98,19 @@ quede como evidencia del proceso y también para que nadie del grupo se olvide d
   extracción más reciente; el PR solo se abre si no hay uno abierto para esa rama, y si GitHub no
   deja crearlo por permisos, el job muestra un error que dice qué opción activar. Antes de subirlo
   lo probamos en local con un remoto donde la rama ya existía.
+
+## 15 de noviembre de 2026 – El scraping volvió vacío en GitHub Actions
+
+- Las ejecuciones del 13 y del 15 de noviembre fallaron en *Validar la extracción* con
+  `pandas.errors.EmptyDataError`. El log mostró la causa real un paso antes: `Página 1: sin
+  productos`, es decir, Chrome abrió Éxito.com pero no apareció ningún `<article>` en 15 segundos.
+  El 10 de noviembre el mismo workflow sí había traído 45 productos.
+- Había dos problemas: el sitio no le mostró el listado al runner (posible bloqueo anti-bots o
+  carga lenta) y nuestro código guardaba igual un CSV vacío, que después hacía caer a `validar` con
+  un error confuso.
+- Lo arreglamos así: la primera página se reintenta hasta 3 veces con 30 segundos de espera; si no
+  aparecen productos se guardan el HTML y una captura en `debug/`, que el workflow sube como
+  artefacto `debug-scraping`; `scrape` termina con un mensaje claro sin sobrescribir el CSV, y
+  `validar` acepta archivos vacíos. Agregamos una prueba para ese caso.
+- Si la captura muestra una página de verificación o "acceso denegado", la alternativa es hacer el
+  scraping en local y procesar el HTML guardado con `python -m aires_exito desde-html`.
