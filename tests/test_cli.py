@@ -35,3 +35,13 @@ def test_cmd_validar_sale_con_error(tmp_path):
     with pytest.raises(SystemExit):
         main(["validar", "--entrada", str(f)])
     main(["validar", "--entrada", str(f), "--minimo", "1"])
+
+
+def test_cmd_validar_archivo_vacio(tmp_path, capsys):
+    import pytest
+
+    f = tmp_path / "vacio.csv"
+    f.write_text("", encoding="utf-8")
+    with pytest.raises(SystemExit):
+        main(["validar", "--entrada", str(f)])
+    assert "solo 0 productos" in capsys.readouterr().out
