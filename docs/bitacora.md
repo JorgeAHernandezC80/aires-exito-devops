@@ -114,3 +114,18 @@ quede como evidencia del proceso y también para que nadie del grupo se olvide d
   `validar` acepta archivos vacíos. Agregamos una prueba para ese caso.
 - Si la captura muestra una página de verificación o "acceso denegado", la alternativa es hacer el
   scraping en local y procesar el HTML guardado con `python -m aires_exito desde-html`.
+
+## 15 de noviembre de 2026 (2) – Éxito.com bloquea a GitHub Actions
+
+- Con la evidencia nueva quedó claro el motivo: en los tres intentos el navegador recibió una
+  página titulada *"Just a moment..."*, la verificación anti-bots de Cloudflare. Éxito.com está
+  bloqueando las IPs de los servidores de GitHub, así que reintentar no sirve.
+- Decidimos no intentar saltarnos esa protección. Ahora el scraper la reconoce y termina con un
+  código propio (3); el workflow lo convierte en una advertencia, deja los datos como estaban,
+  sube la captura y explica en el resumen del run cómo actualizar en local.
+- Para no depender de pasos manuales, agregamos `scripts/actualizar_datos_local.ps1`, que hace en
+  un computador propio lo mismo que el workflow (scraping, validación, limpieza, reporte y pull
+  request) y deja los datos intactos si algo falla.
+- Evaluamos cambiar Selenium por Playwright, pero lo descartamos: el bloqueo depende de la IP de
+  los servidores de GitHub y no del navegador, y disfrazar el navegador para pasar la verificación
+  iría contra las consideraciones éticas del proyecto.

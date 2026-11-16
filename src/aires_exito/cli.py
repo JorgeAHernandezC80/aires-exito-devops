@@ -21,6 +21,7 @@ from .scraper import recorrer_paginas
 CSV_CRUDO = Path("data/aires_acondicionados_exito_crudo.csv")
 CSV_LIMPIO = Path("data/aires_acondicionados_exito.csv")
 FECHA = Path("data/fecha_extraccion.txt")
+EXIT_BLOQUEADO = 3  # código de salida de `scrape` cuando el sitio bloquea al navegador
 
 
 def _guardar(df: pd.DataFrame, ruta: Path) -> None:
@@ -30,9 +31,16 @@ def _guardar(df: pd.DataFrame, ruta: Path) -> None:
 
 
 def cmd_scrape(args) -> None:  # pragma: no cover - requiere Chrome
-    from .scraper import scrapear_todo
+    from .scraper import SitioBloqueado, scrapear_todo
 
-    df = scrapear_todo(args.max_paginas)
+    try:
+        df = scrapear_todo(args.max_paginas)
+    except SitioBloqueado as e:
+        print(
+            f"BLOQUEADO: Éxito.com respondió con una verificación anti-bots ({e}). "
+            "No se modificaron los datos. Hacer la extracción desde un equipo propio."
+        )
+        raise SystemExit(EXIT_BLOQUEADO) from None
     if df.empty:
         # No se sobrescribe el CSV anterior con un archivo vacío.
         print(

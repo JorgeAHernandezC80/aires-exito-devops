@@ -15,8 +15,9 @@ Este es un proyecto grupal para el curso *Programación para Análisis de Datos*
 3. [Resultados de la extracción del 8 de noviembre de 2026](#resultados-de-la-extracción-del-8-de-noviembre-de-2026)
 4. [Estructura del repositorio](#estructura-del-repositorio)
 5. [Cómo ejecutarlo](#cómo-ejecutarlo)
-6. [Flujo de trabajo](#flujo-de-trabajo)
-7. [Consideraciones éticas](#consideraciones-éticas)
+6. [Actualizar datos en local](#actualizar-datos-en-local)
+7. [Flujo de trabajo](#flujo-de-trabajo)
+8. [Consideraciones éticas](#consideraciones-éticas)
 
 ## Integrantes
 
@@ -84,6 +85,27 @@ python -m aires_exito reporte            # genera _site/index.html
 
 Si no se tiene Chrome, se puede trabajar con páginas ya descargadas:
 `python -m aires_exito desde-html data/raw`.
+
+## Actualizar datos en local
+
+Desde noviembre de 2026, Éxito.com responde a los servidores de GitHub Actions con la
+verificación anti-bots de Cloudflare (*"Just a moment..."*). Cuando pasa, el workflow
+*Actualizar datos* termina con una advertencia, no modifica los datos y sube la captura como
+artefacto `debug-scraping`. En ese caso, la extracción se hace desde un computador propio con
+un solo comando (Windows, desde la carpeta del repositorio):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\actualizar_datos_local.ps1
+```
+
+El script actualiza `main`, hace el scraping, valida, limpia, escribe la fecha, genera y abre el
+reporte (`_site/index.html`), sube los datos a la rama `data/actualizacion-AAAAMMDD` y abre el
+pull request (o muestra el enlace si no está instalado GitHub CLI). Si algo falla, deja los datos
+como estaban. Al fusionar el PR, el workflow *Deploy* publica el reporte en GitHub Pages.
+
+Si el sitio también muestra la verificación en el equipo local, se pueden guardar las páginas
+desde el navegador (*Guardar como → Página web completa*) en `data/raw/page_01.html`,
+`page_02.html`, ... y procesarlas con `python -m aires_exito desde-html data/raw`.
 
 ## Flujo de trabajo
 

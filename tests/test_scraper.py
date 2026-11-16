@@ -1,6 +1,12 @@
 """Pruebas de la paginación sin abrir el navegador (se simula obtener_html)."""
 
-from aires_exito.scraper import recorrer_paginas
+from aires_exito.scraper import es_verificacion_antibots, recorrer_paginas
+
+
+def test_detecta_verificacion_antibots():
+    assert es_verificacion_antibots("Just a moment...", "")
+    assert es_verificacion_antibots("", '<script src="https://challenges.cloudflare.com/x">')
+    assert not es_verificacion_antibots("Aires acondicionados | Éxito", "<article></article>")
 
 
 def _tarjeta(slug: str, precio: str = "1.000.000") -> str:
