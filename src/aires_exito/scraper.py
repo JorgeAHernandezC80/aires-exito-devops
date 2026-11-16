@@ -136,12 +136,14 @@ def navegador(intentos: int = 3) -> Iterator[Callable[[int], str | None]]:  # pr
             try:
                 wait.until(EC.presence_of_element_located((By.TAG_NAME, "article")))
             except TimeoutException:
+                # Se deja evidencia en cualquier página: así se distingue un bloqueo anti-bots
+                # (que puede aparecer después de la primera página) del fin normal del listado.
+                print(f"Página {pagina}, intento {intento}: no aparecieron productos.")
+                guardar_evidencia(driver, pagina)
+                if es_verificacion_antibots(driver.title, driver.page_source):
+                    # Reintentar no sirve: el sitio decidió bloquear este navegador.
+                    raise SitioBloqueado(f"página {pagina}: {driver.title}") from None
                 if pagina == 1:
-                    print(f"Página 1, intento {intento}/{intentos}: no aparecieron productos.")
-                    guardar_evidencia(driver, pagina)
-                    if es_verificacion_antibots(driver.title, driver.page_source):
-                        # Reintentar no sirve: el bloqueo es por la IP del servidor.
-                        raise SitioBloqueado(driver.title) from None
                     time.sleep(5 * intento)
                 continue
             scroll_hasta_el_final(driver)
