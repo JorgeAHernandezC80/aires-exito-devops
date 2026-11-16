@@ -28,9 +28,27 @@ jobs:
           cache: pip
       - run: pip install -e ".[scraping]"
       - name: Scraping con Selenium (Chrome headless)
-        run: python -m aires_exito scrape --salida data/aires_acondicionados_exito_crudo.csv
+        id: scraping
+        run: |
+          set +e
+          python -m aires_exito scrape --salida data/aires_acondicionados_exito_crudo.csv
+          CODIGO=$?
+          set -e
+          if [ "$CODIGO" -eq 3 ]; then
+            # Bloqueo anti-bots (Cloudflare) a la IP del runner: no es un error del código.
+            echo "bloqueado=true" >> "$GITHUB_OUTPUT"
+            echo "::warning title=Éxito.com bloqueó al runner::Cloudflare mostró la verificación anti-bots. Los datos NO se actualizaron; hacer la extracción en local (ver README)."
+            {
+              echo "### ⚠️ Datos no actualizados"
+              echo "Éxito.com respondió con la verificación anti-bots de Cloudflare a la IP del runner de GitHub."
+              echo "Los datos publicados siguen siendo los de la última extracción válida."
+              echo "Para actualizarlos, correr el scraping en local (ver README, sección *Actualizar datos en local*)."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          exit "$CODIGO"
       - name: Guardar evidencia del fallo (HTML y captura)
-        if: failure()
+        if: failure() || steps.scraping.outputs.bloqueado == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: debug-scraping
@@ -38,12 +56,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - name: Validar la extracción
+        if: steps.scraping.outputs.bloqueado != 'true'
         run: python -m aires_exito validar --entrada data/aires_acondicionados_exito_crudo.csv
       - name: Limpiar y fechar
+        if: steps.scraping.outputs.bloqueado != 'true'
         run: |
           python -m aires_exito limpiar
           date -u +%F > data/fecha_extraccion.txt
       - name: Abrir pull request con los datos nuevos
+        if: steps.scraping.outputs.bloqueado != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |

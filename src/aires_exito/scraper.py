@@ -93,6 +93,22 @@ def scroll_hasta_el_final(driver, pausa=1.2, max_intentos=10):  # pragma: no cov
 CARPETA_DEBUG = Path("debug")
 
 
+class SitioBloqueado(RuntimeError):
+    """El sitio respondió con una verificación anti-bots en vez del listado."""
+
+
+def es_verificacion_antibots(titulo: str, html: str) -> bool:
+    """Detecta la página de verificación de Cloudflare ("Just a moment...")."""
+    titulo = (titulo or "").lower()
+    return (
+        "just a moment" in titulo
+        or "un momento" in titulo
+        or "attention required" in titulo
+        or "challenges.cloudflare.com" in (html or "")
+        or "cf-chl" in (html or "")
+    )
+
+
 def guardar_evidencia(driver, pagina: int) -> None:  # pragma: no cover
     """Guarda HTML y captura de lo que recibió el navegador, para diagnosticar bloqueos."""
     CARPETA_DEBUG.mkdir(exist_ok=True)
@@ -123,6 +139,9 @@ def navegador(intentos: int = 3) -> Iterator[Callable[[int], str | None]]:  # pr
                 if pagina == 1:
                     print(f"Página 1, intento {intento}/{intentos}: no aparecieron productos.")
                     guardar_evidencia(driver, pagina)
+                    if es_verificacion_antibots(driver.title, driver.page_source):
+                        # Reintentar no sirve: el bloqueo es por la IP del servidor.
+                        raise SitioBloqueado(driver.title) from None
                     time.sleep(5 * intento)
                 continue
             scroll_hasta_el_final(driver)
