@@ -1,6 +1,7 @@
-# Despliegue continuo: cada cambio que llega a main (por merge de un PR) vuelve a correr las
-# pruebas, construye el reporte y lo publica en GitHub Pages. Si las pruebas fallan, no se
-# despliega nada.
+# Despliegue continuo (CD): cada cambio que llega a main (por merge de un PR) vuelve a correr
+# las pruebas, construye el reporte y lo publica en GitHub Pages. Si las pruebas fallan, no se
+# despliega nada. Después del despliegue se comprueba que el sitio publicado es exactamente el
+# commit que se acaba de construir, y se toma una captura como evidencia.
 name: Deploy (GitHub Pages)
 
 on:
@@ -8,12 +9,15 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Permiso por defecto para todos los jobs: solo leer. Cada job pide lo que necesita.
+# Así, el job que instala dependencias de terceros (build) nunca puede publicar en Pages
+# ni pedir un token OIDC: esos permisos los tiene únicamente el job deploy.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-# Un solo despliegue a la vez; no se cancela uno que ya está publicando.
+# Un solo despliegue a la vez. cancel-in-progress: false significa que no se interrumpe un
+# despliegue que ya está publicando. Si llegan varios merges seguidos, GitHub deja en espera
+# solo el más reciente y descarta los intermedios, que ya quedaron viejos.
 concurrency:
   group: pages
   cancel-in-progress: false
@@ -22,6 +26,9 @@ jobs:
   build:
     name: Probar y construir el reporte
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -33,21 +40,41 @@ jobs:
         run: pytest -q
       - name: Construir el sitio
         run: python -m aires_exito reporte --salida _site
+      - name: Ficha de despliegue (trazabilidad commit → sitio)
+        run: |
+          cat > _site/version.json <<EOF
+          {
+            "commit": "${GITHUB_SHA}",
+            "rama": "${GITHUB_REF_NAME}",
+            "run_id": "${GITHUB_RUN_ID}",
+            "publicado_utc": "$(date -u +%FT%TZ)",
+            "fecha_datos": "$(cat data/fecha_extraccion.txt)"
+          }
+          EOF
+          cat _site/version.json
       - name: Verificar el sitio generado
         run: |
           test -s _site/index.html
           test -s _site/datos.csv
           grep -q "<svg" _site/index.html
+          jq -e --arg sha "$GITHUB_SHA" '.commit == $sha' _site/version.json
       - uses: actions/configure-pages@v6
+      # Sin include-hidden-files: con la fuente "GitHub Actions", Pages no ejecuta Jekyll, así
+      # que .nojekyll no hace falta, y no subir archivos ocultos evita publicar uno por error.
       - uses: actions/upload-pages-artifact@v5
         with:
           path: _site
-          include-hidden-files: true
 
   deploy:
     name: Publicar en GitHub Pages
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Únicos permisos de escritura del workflow. id-token: write permite pedir un token OIDC
+    # de corta duración con el que deploy-pages se autentica: no hay ningún secreto guardado.
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -61,15 +88,76 @@ jobs:
     name: Prueba de humo del sitio publicado
     needs: deploy
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
     steps:
-      - name: El sitio responde y muestra el reporte
+      # No basta con que la página responda: la versión anterior también dice "Aires
+      # acondicionados en". Se exige que version.json tenga el commit de este run, y se usa
+      # ?v=<sha> para que la caché del CDN no devuelva la versión vieja.
+      - name: El sitio publicado es el commit de este run
         env:
           URL: ${{ needs.deploy.outputs.page_url }}
         run: |
-          for i in 1 2 3 4 5; do
-            if curl -fsSL "$URL" | grep -q "Aires acondicionados en"; then
-              echo "OK: $URL"; exit 0
+          BASE="${URL%/}/"
+          for i in $(seq 1 10); do
+            PUBLICADO="$(curl -fsSL "${BASE}version.json?v=${GITHUB_SHA}" | jq -r .commit || true)"
+            if [ "$PUBLICADO" = "$GITHUB_SHA" ] \
+              && curl -fsSL "${BASE}?v=${GITHUB_SHA}" | grep -q "Aires acondicionados en"; then
+              echo "OK: $BASE publica el commit $GITHUB_SHA"
+              exit 0
             fi
-            echo "Intento $i: aún no disponible, esperando 15 s"; sleep 15
+            echo "Intento $i: publicado='${PUBLICADO:-nada}', esperado=$GITHUB_SHA. Espero 15 s"
+            sleep 15
           done
-          echo "El sitio no respondió como se esperaba"; exit 1
+          echo "::error::El sitio no muestra el commit $GITHUB_SHA después de 10 intentos"
+          exit 1
+      - name: Resumen del despliegue
+        env:
+          URL: ${{ needs.deploy.outputs.page_url }}
+        run: |
+          BASE="${URL%/}/"
+          {
+            echo "### Despliegue verificado"
+            echo ""
+            echo "| Dato | Valor |"
+            echo "|---|---|"
+            echo "| Sitio | $BASE |"
+            echo "| Commit publicado | \`$GITHUB_SHA\` |"
+            echo "| Ficha | ${BASE}version.json |"
+            echo "| Evento | $GITHUB_EVENT_NAME |"
+            echo "| Captura | artefacto \`captura-despliegue\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  captura:
+    name: Captura automática del sitio publicado
+    needs: [deploy, smoke-test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions: {}
+    steps:
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: pip install playwright && python -m playwright install --with-deps chromium
+      - name: Tomar captura de página completa
+        env:
+          URL: ${{ needs.deploy.outputs.page_url }}
+        run: |
+          python - <<'PY'
+          import os
+          from playwright.sync_api import sync_playwright
+
+          url = os.environ["URL"].rstrip("/") + "/?v=" + os.environ["GITHUB_SHA"]
+          with sync_playwright() as p:
+              navegador = p.chromium.launch()
+              pagina = navegador.new_page(viewport={"width": 1280, "height": 900})
+              pagina.goto(url, wait_until="networkidle")
+              pagina.screenshot(path="captura-sitio.png", full_page=True)
+              navegador.close()
+          print("Captura guardada de", url)
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: captura-despliegue
+          path: captura-sitio.png
+          retention-days: 30
