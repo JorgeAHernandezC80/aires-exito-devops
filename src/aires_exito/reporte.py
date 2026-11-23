@@ -1,4 +1,4 @@
-﻿"""Genera el sitio estático del reporte (lo publica el pipeline de CD en GitHub Pages).
+"""Genera el sitio estático del reporte (lo publica el pipeline de CD en GitHub Pages).
 
     python -m aires_exito reporte --entrada data/aires_acondicionados_exito.csv --salida _site
 
