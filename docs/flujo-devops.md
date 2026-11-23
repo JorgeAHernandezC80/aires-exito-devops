@@ -71,5 +71,27 @@ las pruebas de las dos ramas. En el mensaje del commit de merge quedó explicado
 - *Settings → Actions → General → Workflow permissions*: marcar
   "Allow GitHub Actions to create and approve pull requests" (solo lo necesita
   `actualizar-datos.yml`).
-- Si se quiere más control: *Settings → Branches* → una regla para `main` que pida que el check
-  **CI** pase antes de poder fusionar.
+- *Settings → Rules → Rulesets* → ruleset **proteccion-main** (activo desde el 22 de noviembre de
+  2026), aplicado a la rama por defecto (`main`), sin excepciones (*Bypass list* vacía):
+
+  | Regla | Efecto |
+  |---|---|
+  | Require a pull request before merging (0 aprobaciones) | Nadie puede subir cambios directo a `main`; todo entra por PR |
+  | Require status checks to pass | No se puede fusionar si falla `Lint (ruff)` o alguna de las `Pruebas (Python 3.11 a 3.14)` |
+  | Block force pushes | Nadie puede reescribir el historial de `main` |
+  | Restrict deletions | Nadie puede borrar `main` |
+
+  Las aprobaciones están en 0 porque el proyecto lo mantiene una sola persona y GitHub no deja
+  aprobar el propio PR; la revisión la hace el CI.
+
+  ![Ruleset proteccion-main aplicado a main](img/06-ruleset-main.png)
+
+  ![Reglas y checks requeridos del ruleset](img/06b-ruleset-reglas.png)
+
+  Prueba de que funciona: un push directo a `main` es rechazado.
+
+  ```text
+  remote: error: GH013: Repository rule violations found for refs/heads/main.
+  remote: - Changes must be made through a pull request.
+   ! [remote rejected] main -> main (push declined due to repository rule violations)
+  ```
