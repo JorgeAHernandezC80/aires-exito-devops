@@ -224,7 +224,7 @@ def construir_html(df: pd.DataFrame, r: dict, fecha: str) -> str:
 y repuestos. El resto del reporte usa solo los equipos de aire acondicionado.</p>
 {g_cat}
 
-<h2>Precio promedio según capacidad</h2>
+<h2>Precio mediano según capacidad</h2>
 <p class="nota">Solo capacidades con al menos 2 equipos. Se usa la mediana porque hay precios
 extremos.</p>
 {g_btu}
